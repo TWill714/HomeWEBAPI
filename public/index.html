@@ -9,23 +9,108 @@
 <body>
     <h1>Travis Williamson</h1>
     <h2>My Likes</h2>
-    <ol>
-        <li>Dead By Daylight</li>
-        <li>Hollow Knight</li>
-        <li>Super Mario Galaxy</li>
-        <li>Life is Strange</li>
-        <li>Spiritfarer</li>
-        <li>Fortnite</li>
-        <li>Roblox</li>
-        <li>Wizard101</li>
-        <li>Phasmophobia</li>
-        <li>Resident Evil</li>
-    </ol>
-    <p>I chose games for my likes because they are my favorite thing and never dissapoint me.</p>
-    <p>In no specific order these are the games I play the most and always seem to go back to.</p>
-    <p>Fun Fact: I have the most achievements on Dead By Daylight of all my steam games which is 193</p>
+    
+    <ol id="likesList"></ol>
+
+    <p>I chose games for my likes because they are my favorite thing and never disappoint me.</p>
+    <p>In no specific order, these are the games I play the most and always seem to go back to.</p>
+    <p>Fun Fact: I have the most achievements on Dead By Daylight of all my Steam games, which is 193.</p>
+
     <a href="login.html">Login to Entries</a>
     <br>
     <a href="addToList.html">Add Entries to the List</a>
+
+    <script>
+        function loadLikes() {
+            var defaultLikes = [
+                "Dead By Daylight", 
+                "Hollow Knight", 
+                "Super Mario Galaxy", 
+                "Life is Strange",
+                "Spiritfarer", 
+                "Fortnite", 
+                "Roblox", 
+                "Wizard101", 
+                "Phasmophobia", 
+                "Resident Evil"
+            ];
+
+            var storedLikes = JSON.parse(localStorage.getItem("likes")) || [];
+
+            var removedDefaults = JSON.parse(localStorage.getItem("removedDefaults")) || [];
+    
+            storedLikes = storedLikes.filter(function(like) {
+                return like && like.trim() !== "";
+            });
+
+            var activeDefaults = defaultLikes.filter(function(like) {
+                return removedDefaults.indexOf(like) === -1;
+            });
+    
+            var mergedLikes = activeDefaults.concat(
+                storedLikes.filter(function(like) {
+                    return activeDefaults.indexOf(like) === -1;
+                })
+            );
+
+            var list = document.getElementById("likesList");
+            list.innerHTML = "";
+    
+            for (var i = 0; i < mergedLikes.length; i++) {
+                (function(index) {
+                    var item = mergedLikes[index];
+                    var li = document.createElement("li");
+                    li.textContent = item;
+    
+                    var updateLink = document.createElement("a");
+                    updateLink.href = "updateLike.html?index=" + index + 
+                                      "&old=" + encodeURIComponent(item);
+                    updateLink.textContent = " Update";
+                    updateLink.style.marginLeft = "10px";
+    
+                    var deleteLink = document.createElement("a");
+                    deleteLink.href = "#";
+                    deleteLink.textContent = " Delete";
+                    deleteLink.style.marginLeft = "10px";
+                    deleteLink.onclick = function() {
+                        var message = document.createElement("span");
+                        message.textContent = " Like will be removed in 1 second";
+                        message.style.marginLeft = "10px";
+                        message.style.color = "red";
+                        li.appendChild(message);
+    
+                        setTimeout(function() {
+                            mergedLikes.splice(index, 1);
+
+                            if (defaultLikes.indexOf(item) !== -1) {
+                                removedDefaults.push(item);
+                                localStorage.setItem("removedDefaults", JSON.stringify(removedDefaults));
+                            } 
+                            else {
+                                var userLikeIndex = storedLikes.indexOf(item);
+                                if (userLikeIndex !== -1) {
+                                    storedLikes.splice(userLikeIndex, 1);
+                                }
+                                localStorage.setItem("likes", JSON.stringify(storedLikes));
+                            }
+
+                            location.reload();
+                        }, 1000);
+    
+                        return false; 
+                    };
+    
+                    li.appendChild(updateLink);
+                    li.appendChild(deleteLink);
+                    list.appendChild(li);
+                })(i);
+            }
+            localStorage.setItem("likes", JSON.stringify(storedLikes));
+        }
+    
+        document.addEventListener("DOMContentLoaded", loadLikes);
+    </script>
+    
+    
 </body>
 </html>

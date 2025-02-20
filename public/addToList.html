@@ -8,11 +8,28 @@
 </head>
 <body>
     <h1>Add Entries to List</h1>
-    <form>
-        <label for="Item">Add to Likes:</label><br>
-        <input type="text" id="Item"name="Item"><br>
+    
+    <form id="addLike">
+        <label for="Like">Add to Likes:</label><br>
+        <input type="text" id="Like" name="Item"><br>
         <input type="submit" value="Submit">
     </form>
+    
     <a href="index.html">Back to Home</a>
+
+    <script>
+        document.getElementById("addLike").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form from refreshing the page
+
+            let item = document.getElementById("Like").value;
+            if (item.trim() === "") return; // Prevent empty input
+
+            let likes = JSON.parse(localStorage.getItem("likes")) || [];
+            likes.push(item);
+            localStorage.setItem("likes", JSON.stringify(likes));
+
+            document.getElementById("Like").value = ""; // Clear input field
+        });
+    </script>
 </body>
 </html>
