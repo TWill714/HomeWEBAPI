@@ -1,35 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add to List</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <title>Add a New Like</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <h1>Add Entries to List</h1>
-    
-    <form id="addLike">
-        <label for="Like">Add to Likes:</label><br>
-        <input type="text" id="Like" name="Item"><br>
-        <input type="submit" value="Submit">
-    </form>
-    
-    <a href="index.html">Back to Home</a>
-
-    <script>
-        document.getElementById("addLike").addEventListener("submit", function(event) {
-            event.preventDefault(); // Prevent form from refreshing the page
-
-            let item = document.getElementById("Like").value;
-            if (item.trim() === "") return; // Prevent empty input
-
-            let likes = JSON.parse(localStorage.getItem("likes")) || [];
-            likes.push(item);
-            localStorage.setItem("likes", JSON.stringify(likes));
-
-            document.getElementById("Like").value = ""; // Clear input field
-        });
-    </script>
+  <h1>Add a New Like</h1>
+  <div id="authLinks">
+    <a href="login.html">Login</a> |
+    <a href="register.html">Register</a>
+  </div>
+  <div id="userLinks" style="display: none;">
+    <a href="/logout">Logout</a>
+  </div>
+  <form action="/addLike" method="POST">
+    <label>New Like: <input type="text" name="newLike"></label><br>
+    <button type="submit">Add</button>
+  </form>
+  <a href="index.html">Back to Home</a>
+  <script>
+    fetch("/addLike", { method: "POST" })
+      .then(res => {
+        if (res.redirected && res.url.includes("login.html")) {
+          document.getElementById("authLinks").style.display = "block";
+          document.getElementById("userLinks").style.display = "none";
+        } else {
+          document.getElementById("authLinks").style.display = "none";
+          document.getElementById("userLinks").style.display = "block";
+        }
+      })
+      .catch(err => console.error(err));
+  </script>
 </body>
 </html>

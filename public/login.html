@@ -1,20 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>login</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <h1>Login</h1>
-    <form>
-        <label for="Item">Username:</label><br>
-        <input type="text" id="Item"name="Item"><br>
-        <label for="Item">Password:</label><br>
-        <input type="text" id="Item"name="Item"><br>
-        <input type="submit" value="Submit">
-    </form>
-    <a href="index.html">Back to Home</a>
+  <h1>Login</h1>
+  <div id="authLinks">
+    <a href="login.html">Login</a> |
+    <a href="register.html">Register</a>
+  </div>
+  <div id="userLinks" style="display: none;">
+    <a href="/logout">Logout</a>
+  </div>
+  <form action="/login" method="POST">
+    <label>Username: <input type="text" name="username"></label><br>
+    <label>Password: <input type="password" name="password"></label><br>
+    <button type="submit">Login</button>
+  </form>
+  <a href="index.html">Back to Home</a>
+  <script>
+    fetch("/addLike", { method: "POST" })
+      .then(res => {
+        if (res.redirected && res.url.includes("login.html")) {
+          document.getElementById("authLinks").style.display = "block";
+          document.getElementById("userLinks").style.display = "none";
+        } else {
+          document.getElementById("authLinks").style.display = "none";
+          document.getElementById("userLinks").style.display = "block";
+        }
+      })
+      .catch(err => console.error(err));
+  </script>
 </body>
 </html>

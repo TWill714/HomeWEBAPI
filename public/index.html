@@ -1,116 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WEB AP for Games Website</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <title>WEB AP for Games Website</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <h1>Travis Williamson</h1>
-    <h2>My Likes</h2>
-    
-    <ol id="likesList"></ol>
-
-    <p>I chose games for my likes because they are my favorite thing and never disappoint me.</p>
-    <p>In no specific order, these are the games I play the most and always seem to go back to.</p>
-    <p>Fun Fact: I have the most achievements on Dead By Daylight of all my Steam games, which is 193.</p>
-
-    <a href="login.html">Login to Entries</a>
-    <br>
+  <h1>Travis Williamson</h1>
+  <h2>My Likes</h2>
+  <div id="authLinks">
+    <a href="login.html">Login</a> |
+    <a href="register.html">Register</a>
+  </div>
+  <div id="userLinks" style="display: none;">
+    <a href="/logout">Logout</a> |
     <a href="addToList.html">Add Entries to the List</a>
-
-    <script>
-        function loadLikes() {
-            var defaultLikes = [
-                "Dead By Daylight", 
-                "Hollow Knight", 
-                "Super Mario Galaxy", 
-                "Life is Strange",
-                "Spiritfarer", 
-                "Fortnite", 
-                "Roblox", 
-                "Wizard101", 
-                "Phasmophobia", 
-                "Resident Evil"
-            ];
-
-            var storedLikes = JSON.parse(localStorage.getItem("likes")) || [];
-
-            var removedDefaults = JSON.parse(localStorage.getItem("removedDefaults")) || [];
-    
-            storedLikes = storedLikes.filter(function(like) {
-                return like && like.trim() !== "";
-            });
-
-            var activeDefaults = defaultLikes.filter(function(like) {
-                return removedDefaults.indexOf(like) === -1;
-            });
-    
-            var mergedLikes = activeDefaults.concat(
-                storedLikes.filter(function(like) {
-                    return activeDefaults.indexOf(like) === -1;
-                })
-            );
-
-            var list = document.getElementById("likesList");
-            list.innerHTML = "";
-    
-            for (var i = 0; i < mergedLikes.length; i++) {
-                (function(index) {
-                    var item = mergedLikes[index];
-                    var li = document.createElement("li");
-                    li.textContent = item;
-    
-                    var updateLink = document.createElement("a");
-                    updateLink.href = "updateLike.html?index=" + index + 
-                                      "&old=" + encodeURIComponent(item);
-                    updateLink.textContent = " Update";
-                    updateLink.style.marginLeft = "10px";
-    
-                    var deleteLink = document.createElement("a");
-                    deleteLink.href = "#";
-                    deleteLink.textContent = " Delete";
-                    deleteLink.style.marginLeft = "10px";
-                    deleteLink.onclick = function() {
-                        var message = document.createElement("span");
-                        message.textContent = " Like will be removed in 1 second";
-                        message.style.marginLeft = "10px";
-                        message.style.color = "red";
-                        li.appendChild(message);
-    
-                        setTimeout(function() {
-                            mergedLikes.splice(index, 1);
-
-                            if (defaultLikes.indexOf(item) !== -1) {
-                                removedDefaults.push(item);
-                                localStorage.setItem("removedDefaults", JSON.stringify(removedDefaults));
-                            } 
-                            else {
-                                var userLikeIndex = storedLikes.indexOf(item);
-                                if (userLikeIndex !== -1) {
-                                    storedLikes.splice(userLikeIndex, 1);
-                                }
-                                localStorage.setItem("likes", JSON.stringify(storedLikes));
-                            }
-
-                            location.reload();
-                        }, 1000);
-    
-                        return false; 
-                    };
-    
-                    li.appendChild(updateLink);
-                    li.appendChild(deleteLink);
-                    list.appendChild(li);
-                })(i);
-            }
-            localStorage.setItem("likes", JSON.stringify(storedLikes));
+  </div>
+  <ol id="likesList"></ol>
+  <p>I chose games for my likes because they are my favorite thing and never disappoint me.</p>
+  <p>In no specific order, these are the games I play the most and always seem to go back to.</p>
+  <p>Fun Fact: I have the most achievements on Dead By Daylight of all my Steam games, which is 193.</p>
+  <script>
+    let isLoggedIn = false;
+    fetch("/addLike", { method: "POST" })
+      .then(res => {
+        if (res.redirected && res.url.includes("login.html")) {
+          document.getElementById("authLinks").style.display = "block";
+          document.getElementById("userLinks").style.display = "none";
+          isLoggedIn = false;
+        } else {
+          document.getElementById("authLinks").style.display = "none";
+          document.getElementById("userLinks").style.display = "block";
+          isLoggedIn = true;
         }
-    
-        document.addEventListener("DOMContentLoaded", loadLikes);
-    </script>
-    
-    
+        return fetch("/api/likes");
+      })
+      .then(r => r.json())
+      .then(data => {
+        var list = document.getElementById("likesList");
+        list.innerHTML = "";
+        data.forEach(function(item, i) {
+          var li = document.createElement("li");
+          li.textContent = item;
+          if (isLoggedIn) {
+            var updateLink = document.createElement("a");
+            updateLink.href = "updateLike.html?index=" + i + "&old=" + encodeURIComponent(item);
+            updateLink.textContent = " Update";
+            updateLink.style.marginLeft = "10px";
+            li.appendChild(updateLink);
+            var deleteForm = document.createElement("form");
+            deleteForm.action = "/deleteLike";
+            deleteForm.method = "POST";
+            deleteForm.style.display = "inline";
+            deleteForm.style.marginLeft = "10px";
+            deleteForm.innerHTML = `
+              <input type="hidden" name="index" value="${i}">
+              <button type="submit">Delete</button>
+            `;
+            li.appendChild(deleteForm);
+          }
+          list.appendChild(li);
+        });
+      })
+      .catch(err => console.error(err));
+  </script>
 </body>
 </html>

@@ -1,71 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update Like</title>
+  <meta charset="UTF-8">
+  <title>Update Like</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <h1>Update Entry</h1>
-
-    <p>Current like: <span id="currentLike"></span></p>
-    <input type="text" id="updatedLike" placeholder="Enter new like">
-    <button onclick="updateLike()">Update</button>
-    <br><br>
-    <a href="index.html">Back to Home</a>
-
-    <script>
-        // On page load, fill in the old like name
-        document.addEventListener("DOMContentLoaded", function() {
-            var params = new URLSearchParams(window.location.search);
-            var oldItem = params.get("old");
-
-            document.getElementById("currentLike").textContent = oldItem;
-            document.getElementById("updatedLike").value = oldItem;
-        });
-
-        function updateLike() {
-            var params = new URLSearchParams(window.location.search);
-            var oldItem = params.get("old");
-
-            var newItem = document.getElementById("updatedLike").value.trim();
-            if (!newItem) {
-                alert("Please enter a valid like!");
-                return;
-            }
-
-            // Load existing data
-            var defaultLikes = [
-                "Dead By Daylight", "Hollow Knight", "Super Mario Galaxy", "Life is Strange",
-                "Spiritfarer", "Fortnite", "Roblox", "Wizard101", "Phasmophobia", "Resident Evil"
-            ];
-            var storedLikes = JSON.parse(localStorage.getItem("likes")) || [];
-            var removedDefaults = JSON.parse(localStorage.getItem("removedDefaults")) || [];
-
-            // If oldItem was originally a default (and not already removed)
-            if (defaultLikes.indexOf(oldItem) !== -1 && removedDefaults.indexOf(oldItem) === -1) {
-                // Mark the old default as removed
-                removedDefaults.push(oldItem);
-                localStorage.setItem("removedDefaults", JSON.stringify(removedDefaults));
-
-                // Add the new item to user-added likes (unless it’s already there)
-                if (storedLikes.indexOf(newItem) === -1) {
-                    storedLikes.push(newItem);
-                }
-                localStorage.setItem("likes", JSON.stringify(storedLikes));
-            } else {
-                // Otherwise, oldItem is already user-added
-                var userIndex = storedLikes.indexOf(oldItem);
-                if (userIndex !== -1) {
-                    // Replace old name with new
-                    storedLikes[userIndex] = newItem;
-                }
-                localStorage.setItem("likes", JSON.stringify(storedLikes));
-            }
-
-            // Go back to the main page
-            window.location.href = "index.html";
+  <h1>Update a Like</h1>
+  <div id="authLinks">
+    <a href="login.html">Login</a> |
+    <a href="register.html">Register</a>
+  </div>
+  <div id="userLinks" style="display: none;">
+    <a href="/logout">Logout</a>
+  </div>
+  <form id="updateForm" action="/updateLike" method="POST">
+    <input type="hidden" id="likeIndex" name="index">
+    <label>Updated Name: <input type="text" name="updatedLike" id="updatedLike"></label><br>
+    <button type="submit">Update</button>
+  </form>
+  <a href="index.html">Back to Home</a>
+  <script>
+    var params = new URLSearchParams(window.location.search);
+    document.getElementById("likeIndex").value = params.get("index");
+    document.getElementById("updatedLike").value = params.get("old") || "";
+    fetch("/addLike", { method: "POST" })
+      .then(res => {
+        if (res.redirected && res.url.includes("login.html")) {
+          document.getElementById("authLinks").style.display = "block";
+          document.getElementById("userLinks").style.display = "none";
+        } else {
+          document.getElementById("authLinks").style.display = "none";
+          document.getElementById("userLinks").style.display = "block";
         }
-    </script>
+      })
+      .catch(err => console.error(err));
+  </script>
 </body>
 </html>
